@@ -377,9 +377,8 @@ export const resolveCombat = (
     atkMax += 5;
   }
 
-  let supporterPiece: Piece | null = null;
   if (supporterPos) {
-    supporterPiece = newBoard[supporterPos.y][supporterPos.x].piece!;
+    const supporterPiece = newBoard[supporterPos.y][supporterPos.x].piece!;
     defMax += PIECE_POWER[supporterPiece.type];
   }
 
@@ -394,64 +393,77 @@ export const resolveCombat = (
     maxDef: defMax,
     atkType: attackerPiece.type,
     defType: defenderPiece.type,
-    winner: atkRoll >= defRoll ? attackerPiece.color : defenderPiece.color
+    winner: atkRoll >= defRoll ? attackerPiece.color : defenderPiece.color,
+    attackerPos,
+    defenderPos,
+    supporterPos
   };
+
+  return newState;
+};
+
+export const executeCombatRoll = (gameState: GameState): GameState => {
+  if (!gameState.diceRolls) return gameState;
+
+  const newBoard = gameState.board.map(row => row.map(tile => ({ ...tile })));
+  const newState: GameState = { ...gameState, board: newBoard };
+
+  const roll = gameState.diceRolls;
+  const attackerPiece = newBoard[roll.attackerPos.y][roll.attackerPos.x].piece!;
+  const defenderPiece = newBoard[roll.defenderPos.y][roll.defenderPos.x].piece!;
+  let supporterPiece: Piece | null = null;
+  if (roll.supporterPos) {
+    supporterPiece = newBoard[roll.supporterPos.y][roll.supporterPos.x].piece!;
+  }
 
   let combatToast = "";
 
-  if (atkRoll >= defRoll) {
-    // Attacker wins! (Ties go to attacker)
-    
-    // Check game over
+  if (roll.winner === attackerPiece.color) {
+    // Attacker wins!
     if (defenderPiece.type === 'GENERAL') {
       newState.winner = attackerPiece.color;
     }
 
-    // Kill defender
     if (newState.players[defenderPiece.color].extraLife && defenderPiece.type !== 'GENERAL') {
       newState.players[defenderPiece.color].extraLife = false;
-      newBoard[defenderPos.y][defenderPos.x].piece = null;
+      newBoard[roll.defenderPos.y][roll.defenderPos.x].piece = null;
       spawnAtBase(newBoard, defenderPiece, defenderPiece.color);
       combatToast += `UNDYING TRIGGERED! ${defenderPiece.type} was killed but immediately respawned at base!\n`;
     } else {
       newState.players[defenderPiece.color].graveyard.push(defenderPiece);
-      newBoard[defenderPos.y][defenderPos.x].piece = null;
+      newBoard[roll.defenderPos.y][roll.defenderPos.x].piece = null;
     }
 
-    // Kill supporter if there was one
-    if (supporterPos && supporterPiece) {
+    if (roll.supporterPos && supporterPiece) {
       if (newState.players[supporterPiece.color].extraLife && supporterPiece.type !== 'GENERAL') {
         newState.players[supporterPiece.color].extraLife = false;
-        newBoard[supporterPos.y][supporterPos.x].piece = null;
+        newBoard[roll.supporterPos.y][roll.supporterPos.x].piece = null;
         spawnAtBase(newBoard, supporterPiece, supporterPiece.color);
         combatToast += `UNDYING TRIGGERED! Supporting ${supporterPiece.type} was killed but immediately respawned at base!\n`;
       } else {
         newState.players[supporterPiece.color].graveyard.push(supporterPiece);
-        newBoard[supporterPos.y][supporterPos.x].piece = null;
+        newBoard[roll.supporterPos.y][roll.supporterPos.x].piece = null;
       }
     }
 
-    // Move attacker to defender's tile
-    newBoard[defenderPos.y][defenderPos.x].piece = attackerPiece;
-    newBoard[attackerPos.y][attackerPos.x].piece = null;
+    newBoard[roll.defenderPos.y][roll.defenderPos.x].piece = attackerPiece;
+    newBoard[roll.attackerPos.y][roll.attackerPos.x].piece = null;
     
-    // If they landed on a vault, process the draw BEFORE swapping turn
-    if (newBoard[defenderPos.y][defenderPos.x].isVault) {
+    if (newBoard[roll.defenderPos.y][roll.defenderPos.x].isVault) {
       let intermediateState = { ...newState, board: newBoard };
-      intermediateState = processVaultDraw(intermediateState, defenderPos.x, defenderPos.y);
+      intermediateState = processVaultDraw(intermediateState, roll.defenderPos.x, roll.defenderPos.y);
       Object.assign(newState, intermediateState);
     }
-
   } else {
     // Defender wins!
     if (newState.players[attackerPiece.color].extraLife && attackerPiece.type !== 'GENERAL') {
       newState.players[attackerPiece.color].extraLife = false;
-      newBoard[attackerPos.y][attackerPos.x].piece = null;
+      newBoard[roll.attackerPos.y][roll.attackerPos.x].piece = null;
       spawnAtBase(newBoard, attackerPiece, attackerPiece.color);
       combatToast += `UNDYING TRIGGERED! Attacking ${attackerPiece.type} was killed but immediately respawned at base!\n`;
     } else {
       newState.players[attackerPiece.color].graveyard.push(attackerPiece);
-      newBoard[attackerPos.y][attackerPos.x].piece = null;
+      newBoard[roll.attackerPos.y][roll.attackerPos.x].piece = null;
     }
   }
 
@@ -459,6 +471,8 @@ export const resolveCombat = (
     newState.toastMessage = (newState.toastMessage ? newState.toastMessage + "\n" : "") + combatToast;
   }
 
+  newState.diceRolls = null;
+  
   if (newState.pendingRevive) return newState;
   return endTurn(newState);
 };

@@ -70,5 +70,8 @@ export interface GameState {
     atkType: string; 
     defType: string; 
     winner: PlayerColor;
+    attackerPos: {x: number, y: number};
+    defenderPos: {x: number, y: number};
+    supporterPos: {x: number, y: number} | null;
   } | null;
 }

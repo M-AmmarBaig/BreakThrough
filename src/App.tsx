@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import './styles/App.css';
-import { initializeGame, calculateValidMoves, executeMove, resolveCombat, playCard, executeRevive, executeExplosion } from './game/engine';
+import { initializeGame, calculateValidMoves, executeMove, resolveCombat, executeCombatRoll, playCard, executeRevive, executeExplosion } from './game/engine';
 import type { GameState } from './game/types';
 import { PIECE_NAMES, CARD_NAMES } from './game/balance_config';
 
@@ -40,7 +40,8 @@ function App() {
   };
 
   const handleResolveCombat = () => {
-    setGameState({ ...gameState!, diceRolls: null });
+    if (!gameState) return;
+    setGameState(executeCombatRoll(gameState));
     setDisplayAtk(null);
     setDisplayDef(null);
   };
@@ -224,51 +225,56 @@ function App() {
         </div>
       )}
 
-      {/* Dice Roll Popup (Right Side) */}
+      {/* Dice Roll Popup (Center) */}
       {gameState.diceRolls && (
-        <div className="fixed right-0 top-1/2 -translate-y-1/2 bg-neutral-900 border-l-4 border-y-4 border-yellow-500 p-6 rounded-l-2xl z-[80] flex flex-col items-center w-72 shadow-2xl animate-in slide-in-from-right-10">
-          <h2 className="text-2xl font-black text-yellow-500 mb-6">COMBAT ROLL</h2>
-          <div className="flex justify-between w-full mb-8 font-bold">
-            <div className="text-blue-400 flex flex-col items-center text-center w-1/3">
-              <span className="text-sm text-neutral-400 uppercase">Atk</span>
-              <span className="text-lg">{gameState.diceRolls.atkType}</span>
-              <span className={`text-5xl mt-3 ${rollingDice ? 'animate-pulse text-yellow-400' : ''} drop-shadow-[0_0_10px_rgba(96,165,250,0.5)]`}>
-                {displayAtk !== null ? displayAtk : '?'}
-              </span>
-              <span className="text-sm text-neutral-500 mt-2">Max: {gameState.diceRolls.maxAtk}</span>
-            </div>
-            <div className="flex flex-col justify-center font-black text-yellow-600 text-3xl pb-8 w-1/3 text-center">VS</div>
-            <div className="text-red-500 flex flex-col items-center text-center w-1/3">
-              <span className="text-sm text-neutral-400 uppercase">Def</span>
-              <span className="text-lg">{gameState.diceRolls.defType}</span>
-              <span className={`text-5xl mt-3 ${rollingDice ? 'animate-pulse text-yellow-400' : ''} drop-shadow-[0_0_10px_rgba(239,68,68,0.5)]`}>
-                {displayDef !== null ? displayDef : '?'}
-              </span>
-              <span className="text-sm text-neutral-500 mt-2">Max: {gameState.diceRolls.maxDef}</span>
-            </div>
-          </div>
+        <>
+          {/* Dark Backdrop */}
+          <div className="fixed inset-0 bg-black/75 z-[75] transition-opacity" />
           
-          {displayAtk !== null && !rollingDice ? (
-            <>
-              <div className="text-center font-black text-2xl mb-6 bg-neutral-800 w-full py-2 rounded text-neutral-200 shadow-inner">
-                <span className={gameState.diceRolls.winner === 'white' ? 'text-blue-400' : 'text-red-500'}>
-                  {gameState.diceRolls.winner.toUpperCase()}
-                </span> WINS!
+          <div className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-neutral-900 border-4 border-yellow-500 p-8 rounded-2xl z-[80] flex flex-col items-center w-96 shadow-[0_0_50px_rgba(234,179,8,0.2)] animate-in zoom-in-95">
+            <h2 className="text-3xl font-black text-yellow-500 mb-8 tracking-widest drop-shadow-[0_0_10px_rgba(234,179,8,0.5)]">COMBAT ROLL</h2>
+            <div className="flex justify-between w-full mb-8 font-bold">
+              <div className="text-blue-400 flex flex-col items-center text-center w-1/3">
+                <span className="text-sm text-neutral-400 uppercase tracking-widest">Atk</span>
+                <span className="text-lg mt-1">{gameState.diceRolls.atkType}</span>
+                <span className={`text-6xl mt-4 font-black ${rollingDice ? 'animate-pulse text-yellow-400' : ''} drop-shadow-[0_0_15px_rgba(96,165,250,0.6)]`}>
+                  {displayAtk !== null ? displayAtk : '?'}
+                </span>
+                <span className="text-sm text-neutral-500 mt-3 font-medium">Max: {gameState.diceRolls.maxAtk}</span>
               </div>
-              <button onClick={handleResolveCombat} className="bg-yellow-600 hover:bg-yellow-500 w-full py-3 rounded text-black font-black text-lg shadow-lg">
-                Resolve
+              <div className="flex flex-col justify-center font-black text-neutral-600 text-4xl pb-10 w-1/3 text-center">VS</div>
+              <div className="text-red-500 flex flex-col items-center text-center w-1/3">
+                <span className="text-sm text-neutral-400 uppercase tracking-widest">Def</span>
+                <span className="text-lg mt-1">{gameState.diceRolls.defType}</span>
+                <span className={`text-6xl mt-4 font-black ${rollingDice ? 'animate-pulse text-yellow-400' : ''} drop-shadow-[0_0_15px_rgba(239,68,68,0.6)]`}>
+                  {displayDef !== null ? displayDef : '?'}
+                </span>
+                <span className="text-sm text-neutral-500 mt-3 font-medium">Max: {gameState.diceRolls.maxDef}</span>
+              </div>
+            </div>
+            
+            {displayAtk !== null && !rollingDice ? (
+              <div className="w-full animate-in fade-in slide-in-from-bottom-4">
+                <div className="text-center font-black text-3xl mb-6 bg-neutral-800 w-full py-4 rounded-xl text-neutral-200 shadow-inner border border-neutral-700">
+                  <span className={gameState.diceRolls.winner === 'white' ? 'text-blue-400' : 'text-red-500'}>
+                    {gameState.diceRolls.winner.toUpperCase()}
+                  </span> WINS!
+                </div>
+                <button onClick={handleResolveCombat} className="bg-yellow-600 hover:bg-yellow-500 w-full py-4 rounded-xl text-black font-black text-xl shadow-[0_0_20px_rgba(202,138,4,0.4)] transition-all hover:scale-[1.02] active:scale-[0.98]">
+                  RESOLVE COMBAT
+                </button>
+              </div>
+            ) : (
+              <button 
+                onClick={handleRollDice} 
+                disabled={rollingDice}
+                className={`w-full py-4 rounded-xl text-black font-black text-xl shadow-lg transition-all ${rollingDice ? 'bg-neutral-600 cursor-not-allowed' : 'bg-green-500 hover:bg-green-400 shadow-[0_0_20px_rgba(34,197,94,0.4)] hover:scale-[1.02] active:scale-[0.98] animate-pulse'}`}
+              >
+                {rollingDice ? 'ROLLING...' : 'ROLL DICE!'}
               </button>
-            </>
-          ) : (
-            <button 
-              onClick={handleRollDice} 
-              disabled={rollingDice}
-              className={`w-full py-3 rounded text-black font-black text-lg shadow-lg ${rollingDice ? 'bg-neutral-600 cursor-not-allowed' : 'bg-green-500 hover:bg-green-400 animate-pulse'}`}
-            >
-              {rollingDice ? 'Rolling...' : 'ROLL DICE!'}
-            </button>
-          )}
-        </div>
+            )}
+          </div>
+        </>
       )}
 
       <h1 className="text-4xl font-bold mb-4 tracking-wider">BREAKTHROUGH</h1>
