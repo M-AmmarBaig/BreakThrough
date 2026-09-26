@@ -99,6 +99,7 @@ function App() {
         <div className="flex flex-col gap-4 w-64">
           <button onClick={() => setAppState('PLAYING')} className="bg-yellow-600 hover:bg-yellow-500 text-black font-black text-2xl py-4 rounded-xl shadow-lg">START GAME</button>
           <button onClick={() => setShowRules(true)} className="bg-neutral-800 hover:bg-neutral-700 text-neutral-300 font-bold text-xl py-3 rounded-xl border border-neutral-600">RULES</button>
+          <a href="https://docs.google.com/forms/d/e/1FAIpQLSeS6dBKg2OGtszmjT0w-wOkoq8MiSSR8fcueb5YbzGAkU1dcA/viewform" target="_blank" rel="noopener noreferrer" className="bg-blue-600 hover:bg-blue-500 text-white font-bold text-xl py-3 rounded-xl border border-blue-500 shadow-lg text-center">LEAVE A REVIEW</a>
         </div>
 
         {showRules && (
@@ -286,6 +287,29 @@ function App() {
         className="fixed left-4 top-16 bg-neutral-800 hover:bg-neutral-700 text-red-500 font-bold px-4 py-2 rounded-xl border border-neutral-600 shadow-lg z-50 flex items-center gap-2"
       >
         {showMines ? '👁️ HIDE MINES' : '👁️‍🗨️ REVEAL MINES'}
+      </button>
+
+      {/* Leave a Review Button */}
+      <a 
+        href="https://docs.google.com/forms/d/e/1FAIpQLSeS6dBKg2OGtszmjT0w-wOkoq8MiSSR8fcueb5YbzGAkU1dcA/viewform"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="fixed left-4 top-28 bg-blue-600 hover:bg-blue-500 text-white font-bold px-4 py-2 rounded-xl border border-blue-500 shadow-lg z-50 flex items-center gap-2"
+      >
+        ⭐ LEAVE A REVIEW
+      </a>
+
+      {/* Leave Game Button */}
+      <button 
+        onClick={() => {
+          if (window.confirm('Are you sure you want to end the current game and return to the main menu?')) {
+            setAppState('MENU');
+            setGameState(null); // Reset game entirely
+          }
+        }}
+        className="fixed right-4 top-4 bg-red-600 hover:bg-red-500 text-white font-bold px-4 py-2 rounded-xl border border-red-500 shadow-lg z-50"
+      >
+        LEAVE GAME
       </button>
 
       {/* Rules Modal in Game */}
