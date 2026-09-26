@@ -39,6 +39,8 @@ function App() {
     }, 50);
   };
 
+  const currentPlayerHasMine = gameState ? gameState.players[gameState.currentTurn].hand.some(c => c.type === 'MINE') : false;
+
   const handleResolveCombat = () => {
     if (!gameState) return;
     setGameState(executeCombatRoll(gameState));
@@ -279,6 +281,13 @@ function App() {
 
       <h1 className="text-4xl font-bold mb-4 tracking-wider">BREAKTHROUGH</h1>
       
+      {currentPlayerHasMine && !gameState.pendingExplosion && !gameState.pendingRevive && !gameState.pendingCombat && !gameState.diceRolls && (
+        <div className="fixed top-8 left-1/2 -translate-x-1/2 bg-red-900/95 border-2 border-red-500 text-white font-bold px-8 py-4 rounded-xl shadow-[0_0_30px_rgba(220,38,38,0.5)] z-40 text-center animate-pulse min-w-max">
+          <span className="text-2xl block mb-2">🚨 {gameState.currentTurn === 'white' ? 'Black' : 'White'} Player look away pls :) 🚨</span>
+          <span className="text-lg text-red-200">Please place your Snare (Mine) on any empty slot (not taken by a player, or vault).</span>
+        </div>
+      )}
+      
       {/* Rules Button (Left Side) */}
       <button 
         onClick={() => setShowRules(true)} 
@@ -374,7 +383,7 @@ function App() {
                     MINE TRIGGERED!
                   </h2>
                   <img 
-                    src={`/${gameState.pendingExplosion.piece.color === 'white' ? 'White' : 'Black'}_${PIECE_NAMES[gameState.pendingExplosion.piece.type]}.svg`}
+                    src={`/${gameState.pendingExplosion.piece.color === 'white' ? 'White' : 'Black'}_${PIECE_NAMES[gameState.pendingExplosion.piece.type].full}.svg`}
                     alt={gameState.pendingExplosion.piece.type}
                     className="w-32 h-32 animate-[spin_0.5s_ease-in-out_infinite] brightness-200 sepia hue-rotate-[320deg] saturate-[50]"
                   />

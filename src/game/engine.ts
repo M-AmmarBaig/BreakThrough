@@ -562,8 +562,8 @@ export const playCard = (gameState: GameState, targetX: number, targetY: number)
 
   // Card: MINE (Free Action)
   if (card.type === 'MINE') {
-    if (piece || tile.isVault || tile.hasMine) {
-      return { ...gameState, activeCardId: null, toastMessage: "Invalid target! Mines can only be placed on empty, non-vault tiles." };
+    if (piece || tile.isVault) {
+      return { ...gameState, activeCardId: null, toastMessage: "Invalid target! Mines can only be placed on tiles without players or vaults." };
     }
     newState.board[targetY][targetX].hasMine = true;
     newPlayer.hand.splice(cardIndex, 1);
