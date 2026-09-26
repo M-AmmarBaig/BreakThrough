@@ -7,7 +7,7 @@ import { PIECE_NAMES, CARD_NAMES } from './game/balance_config';
 function App() {
   const [appState, setAppState] = useState<'MENU' | 'PLAYING'>('MENU');
   const [showRules, setShowRules] = useState(false);
-  
+
   const [gameState, setGameState] = useState<GameState | null>(null);
   const [showMines, setShowMines] = useState(false);
 
@@ -52,7 +52,7 @@ function App() {
     <div className="bg-neutral-800 p-8 rounded-xl max-w-2xl w-full border border-yellow-500 shadow-2xl relative overflow-y-auto max-h-[80vh]">
       <h2 className="text-3xl font-black text-yellow-500 mb-6 tracking-widest border-b border-neutral-700 pb-2">HOW TO PLAY</h2>
       <div className="text-neutral-300 space-y-6 text-sm leading-relaxed pr-2">
-        
+
         <div>
           <h3 className="text-xl text-white font-bold mb-1">👑 The Objective</h3>
           <p>Assassinate the enemy <strong>General</strong>. Generals can attack, but are completely immune to being attacked as long as they have at least one loyal <strong>Sepoy</strong> (Pawn) left on the board to shield them.</p>
@@ -168,7 +168,7 @@ function App() {
 
   const handleCardClick = (cardId: string, playerColor: string) => {
     if (gameState.currentTurn !== playerColor) return;
-    
+
     // Toggle card selection
     if (gameState.activeCardId === cardId) {
       setGameState({ ...gameState, activeCardId: null });
@@ -177,30 +177,37 @@ function App() {
     }
   };
 
-  const renderHand = (color: 'white' | 'black') => (
-    <div className="flex flex-wrap gap-2 p-2 bg-neutral-800 rounded-lg min-h-[116px] w-[240px] md:w-[280px] border border-neutral-700 items-start content-start">
-      {gameState.players[color].hand.map(card => {
-        const isSelected = gameState.activeCardId === card.id;
-        const fileName = card.type === 'SURGE' ? 'Overcharge' : CARD_NAMES[card.type];
-        return (
-          <img 
-            key={card.id}
-            onClick={() => handleCardClick(card.id, color)}
-            src={`/${fileName}.svg`}
-            alt={CARD_NAMES[card.type]}
-            className={`w-16 h-24 object-contain cursor-pointer transition-transform 
-              ${gameState.currentTurn === color ? 'hover:-translate-y-2' : 'opacity-50 cursor-not-allowed'}
-              ${isSelected ? '-translate-y-4 ring-2 ring-yellow-400 rounded' : ''}`}
-            title={CARD_NAMES[card.type]}
-          />
-        );
-      })}
-    </div>
-  );
+  const renderHand = (color: 'white' | 'black') => {
+    const isCurrentTurn = gameState.currentTurn === color;
+    const highlightClass = isCurrentTurn
+      ? (color === 'white' ? 'bg-blue-900/20 border-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.2)]' : 'bg-red-900/20 border-red-500 shadow-[0_0_15px_rgba(239,68,68,0.2)]')
+      : 'bg-neutral-800 border-neutral-700 opacity-60 grayscale-[30%]';
+
+    return (
+      <div className={`flex flex-wrap gap-2 p-2 rounded-lg min-h-[116px] w-[240px] md:w-[280px] border items-start content-start transition-all duration-300 ${highlightClass}`}>
+        {gameState.players[color].hand.map(card => {
+          const isSelected = gameState.activeCardId === card.id;
+          const fileName = card.type === 'SURGE' ? 'Overcharge' : CARD_NAMES[card.type];
+          return (
+            <img
+              key={card.id}
+              onClick={() => handleCardClick(card.id, color)}
+              src={`/${fileName}.svg`}
+              alt={CARD_NAMES[card.type]}
+              className={`w-16 h-24 object-contain cursor-pointer transition-transform 
+                ${isCurrentTurn ? 'hover:-translate-y-2' : 'cursor-not-allowed'}
+                ${isSelected ? '-translate-y-4 ring-2 ring-yellow-400 rounded shadow-[0_0_15px_rgba(250,204,21,0.5)]' : ''}`}
+              title={CARD_NAMES[card.type]}
+            />
+          );
+        })}
+      </div>
+    );
+  };
 
   return (
     <div className="min-h-screen bg-neutral-900 text-white flex flex-col items-center justify-center p-4 py-12 relative overflow-x-hidden">
-      
+
       {/* Toast Message Popup */}
       {gameState.toastMessage && (
         <div className="fixed top-8 left-1/2 -translate-x-1/2 bg-black/90 text-white px-8 py-4 rounded-xl border-2 border-yellow-500 z-[120] text-center shadow-2xl max-w-lg animate-in slide-in-from-top-10">
@@ -213,13 +220,13 @@ function App() {
       {gameState.drawnCard && (
         <div className="fixed inset-0 bg-black/80 z-[110] flex flex-col items-center justify-center p-4">
           <h2 className="text-4xl font-bold text-yellow-500 mb-8 drop-shadow-lg">VAULT DRAW!</h2>
-          <img 
+          <img
             src={`/${gameState.drawnCard.type === 'SURGE' ? 'Overcharge' : CARD_NAMES[gameState.drawnCard.type]}.svg`}
             alt={CARD_NAMES[gameState.drawnCard.type]}
             className="w-64 h-96 object-contain animate-in zoom-in spin-in-12 drop-shadow-[0_0_30px_rgba(234,179,8,0.5)]"
           />
-          <button 
-            onClick={() => setGameState({ ...gameState, drawnCard: null })} 
+          <button
+            onClick={() => setGameState({ ...gameState, drawnCard: null })}
             className="mt-12 bg-yellow-600 hover:bg-yellow-500 px-12 py-4 rounded-xl font-black text-black text-2xl shadow-2xl transition-transform hover:scale-110"
           >
             Awesome!
@@ -232,7 +239,7 @@ function App() {
         <>
           {/* Dark Backdrop */}
           <div className="fixed inset-0 bg-black/75 z-[75] transition-opacity" />
-          
+
           <div className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-neutral-900 border-4 border-yellow-500 p-8 rounded-2xl z-[80] flex flex-col items-center w-96 shadow-[0_0_50px_rgba(234,179,8,0.2)] animate-in zoom-in-95">
             <h2 className="text-3xl font-black text-yellow-500 mb-8 tracking-widest drop-shadow-[0_0_10px_rgba(234,179,8,0.5)]">COMBAT ROLL</h2>
             <div className="flex justify-between w-full mb-8 font-bold">
@@ -254,7 +261,7 @@ function App() {
                 <span className="text-sm text-neutral-500 mt-3 font-medium">Max: {gameState.diceRolls.maxDef}</span>
               </div>
             </div>
-            
+
             {displayAtk !== null && !rollingDice ? (
               <div className="w-full animate-in fade-in slide-in-from-bottom-4">
                 <div className="text-center font-black text-3xl mb-6 bg-neutral-800 w-full py-4 rounded-xl text-neutral-200 shadow-inner border border-neutral-700">
@@ -267,8 +274,8 @@ function App() {
                 </button>
               </div>
             ) : (
-              <button 
-                onClick={handleRollDice} 
+              <button
+                onClick={handleRollDice}
                 disabled={rollingDice}
                 className={`w-full py-4 rounded-xl text-black font-black text-xl shadow-lg transition-all ${rollingDice ? 'bg-neutral-600 cursor-not-allowed' : 'bg-green-500 hover:bg-green-400 shadow-[0_0_20px_rgba(34,197,94,0.4)] hover:scale-[1.02] active:scale-[0.98] animate-pulse'}`}
               >
@@ -280,32 +287,35 @@ function App() {
       )}
 
       <h1 className="text-4xl font-bold mb-4 tracking-wider">BREAKTHROUGH</h1>
-      
+
       {currentPlayerHasMine && !gameState.pendingExplosion && !gameState.pendingRevive && !gameState.pendingCombat && !gameState.diceRolls && (
-        <div className="fixed top-8 left-1/2 -translate-x-1/2 bg-red-900/95 border-2 border-red-500 text-white font-bold px-8 py-4 rounded-xl shadow-[0_0_30px_rgba(220,38,38,0.5)] z-40 text-center animate-pulse min-w-max">
-          <span className="text-2xl block mb-2">🚨 {gameState.currentTurn === 'white' ? 'Black' : 'White'} Player look away pls :) 🚨</span>
-          <span className="text-lg text-red-200">Please place your Snare (Mine) on any empty slot (not taken by a player, or vault).</span>
+        <div className="fixed top-1/2 right-4 lg:right-12 -translate-y-1/2 bg-red-900/95 border-2 border-red-500 text-white font-bold p-6 rounded-2xl shadow-[0_0_30px_rgba(220,38,38,0.5)] z-40 text-center animate-pulse w-72 flex flex-col gap-4">
+          <div className="text-5xl animate-bounce">🚨</div>
+          <span className="text-2xl block uppercase tracking-widest leading-tight">{gameState.currentTurn === 'white' ? 'Black' : 'White'}<br />Player</span>
+          <span className="text-xl block text-red-300 font-black">LOOK AWAY PLS :)</span>
+          <hr className="border-red-500/50 my-2" />
+          <span className="text-sm text-red-100 font-medium leading-relaxed">Please place your Snare (Mine) on any empty slot (not taken by a player, or vault).</span>
         </div>
       )}
-      
+
       {/* Rules Button (Left Side) */}
-      <button 
-        onClick={() => setShowRules(true)} 
+      <button
+        onClick={() => setShowRules(true)}
         className="fixed left-4 top-4 bg-neutral-800 hover:bg-neutral-700 text-yellow-500 font-bold px-4 py-2 rounded-xl border border-neutral-600 shadow-lg z-50"
       >
         RULES
       </button>
 
       {/* Hide/Show Mines Toggle */}
-      <button 
-        onClick={() => setShowMines(!showMines)} 
+      <button
+        onClick={() => setShowMines(!showMines)}
         className="fixed left-4 top-16 bg-neutral-800 hover:bg-neutral-700 text-red-500 font-bold px-4 py-2 rounded-xl border border-neutral-600 shadow-lg z-50 flex items-center gap-2"
       >
-        {showMines ? '👁️ HIDE MINES' : '👁️‍🗨️ REVEAL MINES'}
+        {showMines ? '👁️ HIDE MINES (TESTING ONLY)' : '👁️‍🗨️ REVEAL MINES (TESTING ONLY)'}
       </button>
 
       {/* Leave a Review Button */}
-      <a 
+      <a
         href="https://docs.google.com/forms/d/e/1FAIpQLSeS6dBKg2OGtszmjT0w-wOkoq8MiSSR8fcueb5YbzGAkU1dcA/viewform"
         target="_blank"
         rel="noopener noreferrer"
@@ -315,7 +325,7 @@ function App() {
       </a>
 
       {/* Leave Game Button */}
-      <button 
+      <button
         onClick={() => {
           if (window.confirm('Are you sure you want to end the current game and return to the main menu?')) {
             setAppState('MENU');
@@ -342,7 +352,7 @@ function App() {
       </div>
 
       <div className="flex items-center gap-4 md:gap-8 max-w-full overflow-x-auto px-4 pb-8">
-        
+
         {/* Left Side: Hands */}
         <div className="flex flex-col justify-between h-[400px] md:h-[528px] z-50 shrink-0">
           {/* Black Player Deck (Top) */}
@@ -353,7 +363,7 @@ function App() {
             </strong>
             {renderHand('black')}
           </div>
-          
+
           {/* White Player Deck (Bottom) */}
           <div className="flex flex-col items-center">
             <strong className="text-blue-400 mb-2 text-lg drop-shadow">
@@ -368,174 +378,174 @@ function App() {
         <div className="flex items-center gap-2 shrink-0">
           {/* Row coordinates */}
           <div className="flex flex-col justify-around text-neutral-500 font-bold text-lg select-none h-[400px] md:h-[528px]">
-             {[8,7,6,5,4,3,2,1].map(n => <div key={n} className="flex items-center justify-center h-full">{n}</div>)}
+            {[8, 7, 6, 5, 4, 3, 2, 1].map(n => <div key={n} className="flex items-center justify-center h-full">{n}</div>)}
           </div>
-          
+
           <div>
-          <div className="grid grid-cols-8 grid-rows-8 gap-1 bg-neutral-800 p-2 rounded-lg shadow-2xl border border-neutral-700 relative overflow-hidden">
-            
-            {/* Cinematic Mine Explosion Overlay */}
-            {gameState.pendingExplosion && (
-              <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm animate-in fade-in">
-                <div className="flex flex-col items-center">
-                  <div className="text-8xl mb-8 animate-bounce">💣</div>
-                  <h2 className="text-6xl font-black text-red-500 mb-8 drop-shadow-[0_0_20px_rgba(220,38,38,1)] animate-pulse uppercase text-center">
-                    MINE TRIGGERED!
-                  </h2>
-                  <img 
-                    src={`/${gameState.pendingExplosion.piece.color === 'white' ? 'White' : 'Black'}_${PIECE_NAMES[gameState.pendingExplosion.piece.type].full}.svg`}
-                    alt={gameState.pendingExplosion.piece.type}
-                    className="w-32 h-32 animate-[spin_0.5s_ease-in-out_infinite] brightness-200 sepia hue-rotate-[320deg] saturate-[50]"
-                  />
-                  <button 
-                    onClick={() => setGameState(executeExplosion(gameState))}
-                    className="mt-12 bg-red-600 hover:bg-red-500 text-white font-black text-2xl px-12 py-4 rounded-xl shadow-[0_0_20px_rgba(220,38,38,0.5)] transition-transform hover:scale-110"
-                  >
-                    RESOLVE DESTRUCTION
-                  </button>
-                </div>
-              </div>
-            )}
+            <div className="grid grid-cols-8 grid-rows-8 gap-1 bg-neutral-800 p-2 rounded-lg shadow-2xl border border-neutral-700 relative overflow-hidden">
 
-            {/* Combat Modal Overlay */}
-            {gameState.pendingCombat && (
-              <div className="absolute inset-0 bg-neutral-900/90 z-[60] flex flex-col items-center justify-center p-4 rounded-lg">
-                <h2 className="text-2xl font-bold text-red-500 mb-2">DEFEND YOUR PIECE!</h2>
-                <p className="text-center mb-6 text-neutral-300">
-                  You are being attacked! You can defend alone, or call an adjacent ally for support.<br/>
-                  <span className="text-red-400 font-bold">WARNING: If you support and lose, BOTH pieces die.</span>
-                </p>
-                <div className="flex flex-col gap-3 w-full max-w-sm">
-                  <button 
-                    onClick={() => setGameState(resolveCombat(gameState, gameState.pendingCombat!.attackerPos, gameState.pendingCombat!.defenderPos, null))}
-                    className="bg-neutral-700 hover:bg-neutral-600 p-3 rounded font-bold border border-neutral-500"
-                  >
-                    Defend Alone
-                  </button>
-                  {gameState.pendingCombat.validSupporters.map((supporter, idx) => {
-                    const supPiece = gameState.board[supporter.y][supporter.x].piece!;
-                    return (
-                      <button 
-                        key={idx}
-                        onClick={() => setGameState(resolveCombat(gameState, gameState.pendingCombat!.attackerPos, gameState.pendingCombat!.defenderPos, supporter))}
-                        className="bg-red-900 hover:bg-red-800 p-3 rounded font-bold border border-red-500"
-                      >
-                        Support with {PIECE_NAMES[supPiece.type].full} at ({['A','B','C','D','E','F','G','H'][supporter.x]}{8 - supporter.y})
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-
-            {/* Graveyard Revive Modal */}
-            {gameState.pendingRevive && !gameState.pendingRevive.selectedPieceId && (
-              <div className="absolute inset-0 bg-neutral-900/95 z-[70] flex flex-col items-center justify-center p-4 rounded-lg">
-                <h2 className="text-4xl font-bold text-green-500 mb-2">GRAVEYARD</h2>
-                <p className="text-center mb-8 text-neutral-300 text-lg">
-                  UNDYING activated! Choose a fallen piece to resurrect:
-                </p>
-                <div className="flex gap-6 overflow-x-auto p-4 max-w-full">
-                  {gameState.players[gameState.pendingRevive.color].graveyard.map((piece) => (
-                    <div 
-                      key={piece.id}
-                      onClick={() => setGameState({ ...gameState, pendingRevive: { ...gameState.pendingRevive!, selectedPieceId: piece.id } })}
-                      className="flex flex-col items-center gap-2 cursor-pointer hover:-translate-y-2 transition-transform bg-neutral-800 p-4 rounded-xl border border-neutral-600 hover:border-green-500 hover:shadow-[0_0_20px_rgba(34,197,94,0.4)]"
+              {/* Cinematic Mine Explosion Overlay */}
+              {gameState.pendingExplosion && (
+                <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm animate-in fade-in">
+                  <div className="flex flex-col items-center">
+                    <div className="text-8xl mb-8 animate-bounce">💣</div>
+                    <h2 className="text-6xl font-black text-red-500 mb-8 drop-shadow-[0_0_20px_rgba(220,38,38,1)] animate-pulse uppercase text-center">
+                      MINE TRIGGERED!
+                    </h2>
+                    <img
+                      src={`/${gameState.pendingExplosion.piece.color === 'white' ? 'White' : 'Black'}_${PIECE_NAMES[gameState.pendingExplosion.piece.type].full}.svg`}
+                      alt={gameState.pendingExplosion.piece.type}
+                      className="w-32 h-32 animate-[spin_0.5s_ease-in-out_infinite] brightness-200 sepia hue-rotate-[320deg] saturate-[50]"
+                    />
+                    <button
+                      onClick={() => setGameState(executeExplosion(gameState))}
+                      className="mt-12 bg-red-600 hover:bg-red-500 text-white font-black text-2xl px-12 py-4 rounded-xl shadow-[0_0_20px_rgba(220,38,38,0.5)] transition-transform hover:scale-110"
                     >
-                      <img 
-                        src={`/${piece.color.charAt(0).toUpperCase() + piece.color.slice(1)}_${PIECE_NAMES[piece.type].full}.svg`}
-                        alt={piece.type}
-                        className="w-16 h-16 drop-shadow-lg"
-                      />
-                      <span className="font-bold text-neutral-300">{PIECE_NAMES[piece.type].full}</span>
-                    </div>
-                  ))}
+                      RESOLVE DESTRUCTION
+                    </button>
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
 
-            {gameState.board.map((row, y) => (
-              row.map((tile, x) => {
-                const isDark = (row.length * y + x + y) % 2 === 1;
-                const isSelected = gameState.selectedPos?.x === x && gameState.selectedPos?.y === y;
-                const isValidMove = gameState.validMoves.some(m => m.x === x && m.y === y);
-                
-                const isDisplaceSource = gameState.pendingDisplaceSource?.x === x && gameState.pendingDisplaceSource?.y === y;
-                
-                const isReviveTarget = gameState.pendingRevive?.selectedPieceId && 
-                       (gameState.pendingRevive.color === 'black' ? (y === 0 || y === 1) : (y === 6 || y === 7)) &&
-                       !tile.piece && !tile.isVault && !tile.hasMine;
+              {/* Combat Modal Overlay */}
+              {gameState.pendingCombat && (
+                <div className="absolute inset-0 bg-neutral-900/90 z-[60] flex flex-col items-center justify-center p-4 rounded-lg">
+                  <h2 className="text-2xl font-bold text-red-500 mb-2">DEFEND YOUR PIECE!</h2>
+                  <p className="text-center mb-6 text-neutral-300">
+                    You are being attacked! You can defend alone, or call an adjacent ally for support.<br />
+                    <span className="text-red-400 font-bold">WARNING: If you support and lose, BOTH pieces die.</span>
+                  </p>
+                  <div className="flex flex-col gap-3 w-full max-w-sm">
+                    <button
+                      onClick={() => setGameState(resolveCombat(gameState, gameState.pendingCombat!.attackerPos, gameState.pendingCombat!.defenderPos, null))}
+                      className="bg-neutral-700 hover:bg-neutral-600 p-3 rounded font-bold border border-neutral-500"
+                    >
+                      Defend Alone
+                    </button>
+                    {gameState.pendingCombat.validSupporters.map((supporter, idx) => {
+                      const supPiece = gameState.board[supporter.y][supporter.x].piece!;
+                      return (
+                        <button
+                          key={idx}
+                          onClick={() => setGameState(resolveCombat(gameState, gameState.pendingCombat!.attackerPos, gameState.pendingCombat!.defenderPos, supporter))}
+                          className="bg-red-900 hover:bg-red-800 p-3 rounded font-bold border border-red-500"
+                        >
+                          Support with {PIECE_NAMES[supPiece.type].full} at ({['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'][supporter.x]}{8 - supporter.y})
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
 
-                return (
-                  <div 
-                    key={`${x}-${y}`}
-                    onClick={() => handleTileClick(x, y)}
-                    className={`relative w-12 h-12 md:w-16 md:h-16 flex items-center justify-center rounded-sm 
+              {/* Graveyard Revive Modal */}
+              {gameState.pendingRevive && !gameState.pendingRevive.selectedPieceId && (
+                <div className="absolute inset-0 bg-neutral-900/95 z-[70] flex flex-col items-center justify-center p-4 rounded-lg">
+                  <h2 className="text-4xl font-bold text-green-500 mb-2">GRAVEYARD</h2>
+                  <p className="text-center mb-8 text-neutral-300 text-lg">
+                    UNDYING activated! Choose a fallen piece to resurrect:
+                  </p>
+                  <div className="flex gap-6 overflow-x-auto p-4 max-w-full">
+                    {gameState.players[gameState.pendingRevive.color].graveyard.map((piece) => (
+                      <div
+                        key={piece.id}
+                        onClick={() => setGameState({ ...gameState, pendingRevive: { ...gameState.pendingRevive!, selectedPieceId: piece.id } })}
+                        className="flex flex-col items-center gap-2 cursor-pointer hover:-translate-y-2 transition-transform bg-neutral-800 p-4 rounded-xl border border-neutral-600 hover:border-green-500 hover:shadow-[0_0_20px_rgba(34,197,94,0.4)]"
+                      >
+                        <img
+                          src={`/${piece.color.charAt(0).toUpperCase() + piece.color.slice(1)}_${PIECE_NAMES[piece.type].full}.svg`}
+                          alt={piece.type}
+                          className="w-16 h-16 drop-shadow-lg"
+                        />
+                        <span className="font-bold text-neutral-300">{PIECE_NAMES[piece.type].full}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {gameState.board.map((row, y) => (
+                row.map((tile, x) => {
+                  const isDark = (row.length * y + x + y) % 2 === 1;
+                  const isSelected = gameState.selectedPos?.x === x && gameState.selectedPos?.y === y;
+                  const isValidMove = gameState.validMoves.some(m => m.x === x && m.y === y);
+
+                  const isDisplaceSource = gameState.pendingDisplaceSource?.x === x && gameState.pendingDisplaceSource?.y === y;
+
+                  const isReviveTarget = gameState.pendingRevive?.selectedPieceId &&
+                    (gameState.pendingRevive.color === 'black' ? (x - y >= 4) : (y - x >= 4)) &&
+                    !tile.piece && !tile.isVault && !tile.hasMine;
+
+                  return (
+                    <div
+                      key={`${x}-${y}`}
+                      onClick={() => handleTileClick(x, y)}
+                      className={`relative w-12 h-12 md:w-16 md:h-16 flex items-center justify-center rounded-sm 
                       ${isDark ? 'bg-[#5C3A21]' : 'bg-[#D2B48C]'}
                       ${isSelected ? 'ring-4 ring-yellow-400 z-10 scale-105' : ''}
                       ${isDisplaceSource ? 'ring-4 ring-purple-500 z-10 animate-pulse' : ''}
                       ${isReviveTarget ? 'ring-4 ring-green-500 z-10 animate-pulse cursor-pointer' : ''}
                       hover:brightness-110 transition-all duration-200 ${tile.piece || isReviveTarget ? 'cursor-pointer' : ''}`}
-                  >
-                    {/* Valid Move Highlight */}
-                    {isValidMove && (
-                      <div className="absolute inset-0 bg-green-500/30 border-2 border-green-400 rounded-sm pointer-events-none z-10" />
-                    )}
+                    >
+                      {/* Valid Move Highlight */}
+                      {isValidMove && (
+                        <div className="absolute inset-0 bg-green-500/30 border-2 border-green-400 rounded-sm pointer-events-none z-10" />
+                      )}
 
-                    {/* Revive Target Highlight */}
-                    {isReviveTarget && (
-                      <div className="absolute inset-0 bg-green-500/30 border-2 border-green-400 rounded-sm pointer-events-none z-10" />
-                    )}
+                      {/* Revive Target Highlight */}
+                      {isReviveTarget && (
+                        <div className="absolute inset-0 bg-green-500/30 border-2 border-green-400 rounded-sm pointer-events-none z-10" />
+                      )}
 
-                    {/* Vault Indicator */}
-                    {tile.isVault && !tile.piece && (
-                      <div className="absolute w-3 h-3 bg-yellow-500 rounded-full shadow-[0_0_10px_rgba(234,179,8,0.8)]" />
-                    )}
+                      {/* Vault Indicator */}
+                      {tile.isVault && !tile.piece && (
+                        <div className="absolute w-3 h-3 bg-yellow-500 rounded-full shadow-[0_0_10px_rgba(234,179,8,0.8)]" />
+                      )}
 
-                    {/* Mine Indicator (Toggled by user) */}
-                    {tile.hasMine && !tile.piece && showMines && (
-                      <div className="absolute w-4 h-4 bg-red-600 rounded-sm shadow-[0_0_10px_rgba(220,38,38,0.8)] animate-pulse" />
-                    )}
+                      {/* Mine Indicator (Toggled by user) */}
+                      {tile.hasMine && !tile.piece && showMines && (
+                        <div className="absolute w-4 h-4 bg-red-600 rounded-sm shadow-[0_0_10px_rgba(220,38,38,0.8)] animate-pulse" />
+                      )}
 
-                    {/* Piece Rendering - Removed circular background container */}
-                    {tile.piece && (
-                      <div className={`relative w-10 h-10 md:w-14 md:h-14 flex items-center justify-center z-20 
+                      {/* Piece Rendering - Removed circular background container */}
+                      {tile.piece && (
+                        <div className={`relative w-10 h-10 md:w-14 md:h-14 flex items-center justify-center z-20 
                         ${isValidMove ? 'opacity-90' : ''}`}
-                      >
-                        <img 
-                          src={`/${tile.piece.color.charAt(0).toUpperCase() + tile.piece.color.slice(1)}_${PIECE_NAMES[tile.piece.type].full}.svg`}
-                          alt={PIECE_NAMES[tile.piece.type].full}
-                          className="w-full h-full object-contain drop-shadow-[0_4px_6px_rgba(0,0,0,0.5)]"
-                        />
+                        >
+                          <img
+                            src={`/${tile.piece.color.charAt(0).toUpperCase() + tile.piece.color.slice(1)}_${PIECE_NAMES[tile.piece.type].full}.svg`}
+                            alt={PIECE_NAMES[tile.piece.type].full}
+                            className="w-full h-full object-contain drop-shadow-[0_4px_6px_rgba(0,0,0,0.5)]"
+                          />
 
-                        {/* Buff Overlays */}
-                        {(tile.piece.defusalTurns || 0) > 0 && (
-                          <div className="absolute top-0 right-0 w-3 h-3 bg-green-500 rounded-full border border-black shadow" title="Defusal Kit Equipped"></div>
-                        )}
-                        {(tile.piece.invincibleTurns || 0) > 0 && (
-                          <div className="absolute inset-0 ring-4 ring-yellow-300 rounded-full animate-pulse pointer-events-none" title="Invincible (Touch-Me-Not)"></div>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                );
-              })
-            ))}
-          </div>
-          
-          {/* Col coordinates */}
-          <div className="grid grid-cols-8 gap-1 mt-3 px-2 text-neutral-500 font-bold text-lg select-none text-center">
-             {['A','B','C','D','E','F','G','H'].map(l => <div key={l} className="w-12 md:w-16">{l}</div>)}
-          </div>
-        </div>
+                          {/* Buff Overlays */}
+                          {(tile.piece.defusalTurns || 0) > 0 && (
+                            <div className="absolute top-0 right-0 w-3 h-3 bg-green-500 rounded-full border border-black shadow" title="Defusal Kit Equipped"></div>
+                          )}
+                          {(tile.piece.invincibleTurns || 0) > 0 && (
+                            <div className="absolute inset-0 ring-4 ring-yellow-300 rounded-full animate-pulse pointer-events-none" title="Invincible (Touch-Me-Not)"></div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })
+              ))}
+            </div>
 
-        {/* Right side info (Deck) */}
-        <div className="flex flex-col items-center justify-center h-[400px] md:h-[528px]">
-           <div className="text-neutral-400 font-bold bg-neutral-800 px-4 py-8 rounded-xl border border-neutral-700 shadow-xl vertical-text rotate-180" style={{ writingMode: 'vertical-rl' }}>
+            {/* Col coordinates */}
+            <div className="grid grid-cols-8 gap-1 mt-3 px-2 text-neutral-500 font-bold text-lg select-none text-center">
+              {['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'].map(l => <div key={l} className="w-12 md:w-16">{l}</div>)}
+            </div>
+          </div>
+
+          {/* Right side info (Deck) */}
+          <div className="flex flex-col items-center justify-center h-[400px] md:h-[528px]">
+            <div className="text-neutral-400 font-bold bg-neutral-800 px-4 py-8 rounded-xl border border-neutral-700 shadow-xl vertical-text rotate-180" style={{ writingMode: 'vertical-rl' }}>
               DECK: {gameState.deck.length} CARDS
-           </div>
+            </div>
+          </div>
         </div>
-      </div>
       </div>
     </div>
   );

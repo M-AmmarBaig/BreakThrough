@@ -643,10 +643,12 @@ export const executeRevive = (gameState: GameState, pieceId: string, targetX: nu
   if (!gameState.pendingRevive) return gameState;
   const playerColor = gameState.pendingRevive.color;
   
-  // Validate target is empty and in home rows (first two rows for black, last two for white)
-  const isValidRow = playerColor === 'black' ? (targetY === 0 || targetY === 1) : (targetY === 6 || targetY === 7);
-  if (!isValidRow) {
-    return { ...gameState, toastMessage: "You can only revive a piece in your starting 2 rows!" };
+  // Validate target is empty and in initial triangular boundary
+  // Black: top-right triangle (x - y >= 4)
+  // White: bottom-left triangle (y - x >= 4)
+  const isValidLocation = playerColor === 'black' ? (targetX - targetY >= 4) : (targetY - targetX >= 4);
+  if (!isValidLocation) {
+    return { ...gameState, toastMessage: "You can only revive a piece in your starting triangular boundary!" };
   }
   if (gameState.board[targetY][targetX].piece || gameState.board[targetY][targetX].isVault || gameState.board[targetY][targetX].hasMine) {
     return { ...gameState, toastMessage: "Target tile must be empty!" };
